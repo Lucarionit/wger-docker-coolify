@@ -1,9 +1,3 @@
-#
-# Please consult the `Deployment` section in the docs if you want to deploy
-# this. You *need* to keep this nginx service, even if you have your own,
-# otherwise the static files will not be served correctly! If you do remove
-# it, configure yours similarly to what's in config/nginx.conf
-# Also take a look at the "Static files" section in the .env file
 services:
   web:
     image: docker.io/wger/server:latest
@@ -17,14 +11,59 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
-    env_file:
-      - ./config/prod.env
     environment:
-      - SECRET_KEY=${WGER_SECRET_KEY}
-      - POSTGRES_PASSWORD=${WGER_DB_PASSWORD}
-      - SITE_URL=${WGER_SITE_URL}
-      - ALLOW_REGISTRATION=${WGER_ALLOW_REGISTRATION}
-      - PS_DATABASE_URI=postgres://wger:${WGER_DB_PASSWORD}@db:5432/wger
+      SECRET_KEY: ${WGER_SECRET_KEY}
+      SITE_URL: ${WGER_SITE_URL}
+      TIME_ZONE: Europe/Zurich
+      TZ: Europe/Zurich
+      POSTGRES_USER: wger
+      POSTGRES_PASSWORD: ${WGER_DB_PASSWORD}
+      POSTGRES_DB: wger
+      PS_DATABASE_URI: postgres://wger:${WGER_DB_PASSWORD}@db:5432/wger
+      DJANGO_PERFORM_MIGRATIONS: "True"
+      WGER_INSTANCE: https://wger.de
+      ALLOW_REGISTRATION: ${WGER_ALLOW_REGISTRATION}
+      ALLOW_GUEST_USERS: "False"
+      ALLOW_UPLOAD_VIDEOS: "True"
+      MIN_ACCOUNT_AGE_TO_TRUST: "21"
+      SYNC_EXERCISES_CELERY: "True"
+      SYNC_EXERCISE_IMAGES_CELERY: "True"
+      SYNC_EXERCISE_VIDEOS_CELERY: "True"
+      SYNC_INGREDIENTS_CELERY: "True"
+      SYNC_INGREDIENTS_DUMP_URL: https://wger.de/media/ingredients/ingredients.jsonl.gz
+      DOWNLOAD_INGREDIENTS_FROM: WGER
+      CACHE_API_EXERCISES_CELERY: "True"
+      CACHE_API_EXERCISES_CELERY_FORCE_UPDATE: "True"
+      USE_CELERY: "True"
+      CELERY_BROKER: redis://cache:6379/2
+      CELERY_BACKEND: redis://cache:6379/2
+      CELERY_FLOWER_PASSWORD: adminadmin
+      CELERY_WORKER_CONCURRENCY: "4"
+      DJANGO_CACHE_BACKEND: django_redis.cache.RedisCache
+      DJANGO_CACHE_LOCATION: redis://cache:6379/1
+      DJANGO_CACHE_TIMEOUT: "1296000"
+      DJANGO_CACHE_CLIENT_CLASS: django_redis.client.DefaultClient
+      AXES_ENABLED: "True"
+      AXES_FAILURE_LIMIT: "10"
+      AXES_COOLOFF_TIME: "30"
+      AXES_HANDLER: axes.handlers.cache.AxesCacheHandler
+      AXES_LOCKOUT_PARAMETERS: ip_address
+      AXES_IPWARE_PROXY_COUNT: "1"
+      AXES_IPWARE_META_PRECEDENCE_ORDER: HTTP_X_FORWARDED_FOR,REMOTE_ADDR
+      DJANGO_DEBUG: "False"
+      WGER_USE_GUNICORN: "True"
+      EXERCISE_CACHE_TTL: "2419200"
+      WGER_PORT: "8000"
+      ACCESS_TOKEN_LIFETIME: "10"
+      REFRESH_TOKEN_LIFETIME: "2880"
+      LOG_LEVEL_PYTHON: INFO
+      USE_RECAPTCHA: "False"
+      DJANGO_CLEAR_STATIC_FIRST: "False"
+      DJANGO_COLLECTSTATIC_ON_STARTUP: "True"
+      FROM_EMAIL: "wger Workout Manager <wger@example.com>"
+      NUMBER_OF_PROXIES: "1"
+      GUNICORN_CMD_ARGS: "--workers 3 --threads 2 --worker-class gthread --timeout 240"
+      EXPOSE_PROMETHEUS_METRICS: "False"
     volumes:
       - static:/home/wger/static
       - media:/home/wger/media
@@ -54,12 +93,13 @@ services:
     command: ["start", "-r", "unified"]
     volumes:
       - ./services/config-powersync:/config:ro
-    env_file:
-      - ./config/prod.env
     environment:
       POWERSYNC_CONFIG_PATH: /config/powersync.yaml
       PS_JWKS_URL: http://web:8000/api/v2/powersync-keys
       PS_DATABASE_URI: postgres://wger:${WGER_DB_PASSWORD}@db:5432/wger
+      PS_STORAGE_PG_URI: postgres://powersync_storage:powersync_password@db:5432/wger
+      PS_PORT: "8080"
+      POWERSYNC_URL_PATH: ps
     expose:
       - 8080
       - 9090
@@ -94,11 +134,11 @@ services:
       options:
         max-size: 10m
         max-file: 3
-    env_file:
-      - ./config/prod.env
     environment:
-      - TZ=Europe/Zurich
-      - POSTGRES_PASSWORD=${WGER_DB_PASSWORD}
+      POSTGRES_USER: wger
+      POSTGRES_PASSWORD: ${WGER_DB_PASSWORD}
+      POSTGRES_DB: wger
+      TZ: Europe/Zurich
     volumes:
       - postgres-data:/var/lib/postgresql/data/
     expose:
@@ -149,11 +189,31 @@ services:
         max-size: 10m
         max-file: 3
     command: /start-worker
-    env_file:
-      - ./config/prod.env
     environment:
-      - SECRET_KEY=${WGER_SECRET_KEY}
-      - POSTGRES_PASSWORD=${WGER_DB_PASSWORD}
+      SECRET_KEY: ${WGER_SECRET_KEY}
+      SITE_URL: ${WGER_SITE_URL}
+      TIME_ZONE: Europe/Zurich
+      TZ: Europe/Zurich
+      POSTGRES_USER: wger
+      POSTGRES_PASSWORD: ${WGER_DB_PASSWORD}
+      POSTGRES_DB: wger
+      DJANGO_PERFORM_MIGRATIONS: "True"
+      USE_CELERY: "True"
+      CELERY_BROKER: redis://cache:6379/2
+      CELERY_BACKEND: redis://cache:6379/2
+      CELERY_WORKER_CONCURRENCY: "4"
+      DJANGO_CACHE_BACKEND: django_redis.cache.RedisCache
+      DJANGO_CACHE_LOCATION: redis://cache:6379/1
+      DJANGO_CACHE_CLIENT_CLASS: django_redis.client.DefaultClient
+      SYNC_EXERCISES_CELERY: "True"
+      SYNC_EXERCISE_IMAGES_CELERY: "True"
+      SYNC_EXERCISE_VIDEOS_CELERY: "True"
+      SYNC_INGREDIENTS_CELERY: "True"
+      SYNC_INGREDIENTS_DUMP_URL: https://wger.de/media/ingredients/ingredients.jsonl.gz
+      DOWNLOAD_INGREDIENTS_FROM: WGER
+      CACHE_API_EXERCISES_CELERY: "True"
+      CACHE_API_EXERCISES_CELERY_FORCE_UPDATE: "True"
+      DJANGO_DEBUG: "False"
     volumes:
       - media:/home/wger/media
     depends_on:
@@ -177,11 +237,19 @@ services:
     command: /start-beat
     volumes:
       - celery-beat:/home/wger/beat/
-    env_file:
-      - ./config/prod.env
     environment:
-      - SECRET_KEY=${WGER_SECRET_KEY}
-      - POSTGRES_PASSWORD=${WGER_DB_PASSWORD}
+      SECRET_KEY: ${WGER_SECRET_KEY}
+      SITE_URL: ${WGER_SITE_URL}
+      TIME_ZONE: Europe/Zurich
+      TZ: Europe/Zurich
+      POSTGRES_USER: wger
+      POSTGRES_PASSWORD: ${WGER_DB_PASSWORD}
+      POSTGRES_DB: wger
+      DJANGO_PERFORM_MIGRATIONS: "True"
+      USE_CELERY: "True"
+      CELERY_BROKER: redis://cache:6379/2
+      CELERY_BACKEND: redis://cache:6379/2
+      DJANGO_DEBUG: "False"
     depends_on:
       celery_worker:
         condition: service_healthy

@@ -11,6 +11,15 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+    command: >
+      sh -c "
+      if [ ! -f /jwt-keys/jwt.env ]; then
+        echo 'Generating JWT keys (first run)...' &&
+        DJANGO_DB_ENGINE=django.db.backends.postgresql DJANGO_DB_DATABASE=wger DJANGO_DB_USER=wger DJANGO_DB_PASSWORD=dummy DJANGO_DB_HOST=localhost DJANGO_DB_PORT=5432 SECRET_KEY=tmp python manage.py generate-jwt-keys > /jwt-keys/jwt.env;
+      fi &&
+      set -a && . /jwt-keys/jwt.env && set +a &&
+      exec /home/wger/entrypoint.sh
+      "
     environment:
       SECRET_KEY: ${WGER_SECRET_KEY}
       SITE_URL: ${WGER_SITE_URL}
@@ -73,6 +82,7 @@ services:
     volumes:
       - static:/home/wger/static
       - media:/home/wger/media
+      - jwt-keys:/jwt-keys
     expose:
       - 8000
     healthcheck:
@@ -279,3 +289,4 @@ volumes:
   redis-data:
   media:
   static:
+  jwt-keys:

@@ -37,14 +37,33 @@ services:
       start_period: 300s
       retries: 5
     restart: unless-stopped
+
   powersync:
-    environment:
-      - PS_DATABASE_URI=postgres://wger:${WGER_DB_PASSWORD}@db:5432/wger
     depends_on:
       db:
         condition: service_healthy
       web:
         condition: service_healthy
+    restart: unless-stopped
+    image: docker.io/journeyapps/powersync-service:latest
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 3
+    command: ["start", "-r", "unified"]
+    volumes:
+      - ./services/config-powersync:/config:ro
+    env_file:
+      - ./config/prod.env
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/powersync.yaml
+      PS_JWKS_URL: http://web:8000/api/v2/powersync-keys
+      PS_DATABASE_URI: postgres://wger:${WGER_DB_PASSWORD}@db:5432/wger
+    expose:
+      - 8080
+      - 9090
+
   nginx:
     image: docker.io/nginx:stable
     logging:
@@ -66,22 +85,62 @@ services:
       retries: 5
       start_period: 30s
     restart: unless-stopped
+
   db:
+    image: docker.io/postgres:15-alpine
     shm_size: 256mb
-    environment:
-      - TZ=Europe/Zurich
-      - POSTGRES_PASSWORD=${WGER_DB_PASSWORD}
     logging:
       driver: json-file
       options:
-        max-size: 5m
-        max-file: 5
-  cache:
+        max-size: 10m
+        max-file: 3
+    env_file:
+      - ./config/prod.env
+    environment:
+      - TZ=Europe/Zurich
+      - POSTGRES_PASSWORD=${WGER_DB_PASSWORD}
     volumes:
+      - postgres-data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    command: [
+      "postgres",
+      "-c", "wal_level=logical",
+      "-c", "shared_buffers=256MB",
+      "-c", "effective_cache_size=768MB",
+      "-c", "work_mem=8MB",
+      "-c", "random_page_cost=1.1",
+      "-c", "max_connections=30"
+    ]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  cache:
+    image: docker.io/redis
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 3
+    expose:
+      - 6379
+    volumes:
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
       - redis-data:/data
-    # You probably want to limit the memory usage of the cache, otherwise it might
-    # hog all the available memory. Remove or change according to your needs.
-    #mem_limit: 5gb
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    healthcheck:
+      test: redis-cli ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
   celery_worker:
     image: docker.io/wger/server:latest
     logging:
@@ -107,6 +166,7 @@ services:
       retries: 5
       start_period: 30s
     restart: unless-stopped
+
   celery_beat:
     image: docker.io/wger/server:latest
     logging:
@@ -126,18 +186,10 @@ services:
       celery_worker:
         condition: service_healthy
     restart: unless-stopped
+
 volumes:
   postgres-data:
   celery-beat:
   redis-data:
-  # Heads up, if you remove these volumes and use folders directly you need to chown them
-  # to the UID and GID 1000 even if it doesn't exist on your system. Also, they should
-  # be readable by everyone.
-  #
-  # https://wger.readthedocs.io/en/latest/administration/errors.html#missing-static-files
   media:
   static:
-include:
-  - path: ./services/postgres.yaml
-  - path: ./services/powersync-service.yaml
-  - path: ./services/redis.yaml

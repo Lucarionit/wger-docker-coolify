@@ -16,6 +16,7 @@ services:
       SITE_URL: ${WGER_SITE_URL}
       TIME_ZONE: Europe/Zurich
       TZ: Europe/Zurich
+      DJANGO_DB_ENGINE: django.db.backends.postgresql
       POSTGRES_USER: wger
       POSTGRES_PASSWORD: ${WGER_DB_PASSWORD}
       POSTGRES_DB: wger
@@ -194,6 +195,7 @@ services:
       SITE_URL: ${WGER_SITE_URL}
       TIME_ZONE: Europe/Zurich
       TZ: Europe/Zurich
+      DJANGO_DB_ENGINE: django.db.backends.postgresql
       POSTGRES_USER: wger
       POSTGRES_PASSWORD: ${WGER_DB_PASSWORD}
       POSTGRES_DB: wger
@@ -242,6 +244,7 @@ services:
       SITE_URL: ${WGER_SITE_URL}
       TIME_ZONE: Europe/Zurich
       TZ: Europe/Zurich
+      DJANGO_DB_ENGINE: django.db.backends.postgresql
       POSTGRES_USER: wger
       POSTGRES_PASSWORD: ${WGER_DB_PASSWORD}
       POSTGRES_DB: wger

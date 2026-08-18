@@ -17,6 +17,11 @@ services:
       TIME_ZONE: Europe/Zurich
       TZ: Europe/Zurich
       DJANGO_DB_ENGINE: django.db.backends.postgresql
+      DJANGO_DB_DATABASE: wger
+      DJANGO_DB_USER: wger
+      DJANGO_DB_PASSWORD: ${WGER_DB_PASSWORD}
+      DJANGO_DB_HOST: db
+      DJANGO_DB_PORT: "5432"
       POSTGRES_USER: wger
       POSTGRES_PASSWORD: ${WGER_DB_PASSWORD}
       POSTGRES_DB: wger
@@ -196,6 +201,11 @@ services:
       TIME_ZONE: Europe/Zurich
       TZ: Europe/Zurich
       DJANGO_DB_ENGINE: django.db.backends.postgresql
+      DJANGO_DB_DATABASE: wger
+      DJANGO_DB_USER: wger
+      DJANGO_DB_PASSWORD: ${WGER_DB_PASSWORD}
+      DJANGO_DB_HOST: db
+      DJANGO_DB_PORT: "5432"
       POSTGRES_USER: wger
       POSTGRES_PASSWORD: ${WGER_DB_PASSWORD}
       POSTGRES_DB: wger
@@ -245,6 +255,11 @@ services:
       TIME_ZONE: Europe/Zurich
       TZ: Europe/Zurich
       DJANGO_DB_ENGINE: django.db.backends.postgresql
+      DJANGO_DB_DATABASE: wger
+      DJANGO_DB_USER: wger
+      DJANGO_DB_PASSWORD: ${WGER_DB_PASSWORD}
+      DJANGO_DB_HOST: db
+      DJANGO_DB_PORT: "5432"
       POSTGRES_USER: wger
       POSTGRES_PASSWORD: ${WGER_DB_PASSWORD}
       POSTGRES_DB: wger

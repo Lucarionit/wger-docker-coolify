@@ -139,5 +139,5 @@ volumes:
   static:
 include:
   - path: ./services/postgres.yaml
-  - path: ./services/powersync.yaml
+  - path: ./services/powersync-service.yaml
   - path: ./services/redis.yaml

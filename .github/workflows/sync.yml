@@ -1,0 +1,16 @@
+name: Rebase Upstream
+on:
+  schedule:
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 10
+      - uses: imba-tjd/rebase-upstream-action@master
+        with:
+          upstream: wger-project/docker
+          branch: master

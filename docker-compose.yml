@@ -80,6 +80,8 @@ services:
       NUMBER_OF_PROXIES: "1"
       GUNICORN_CMD_ARGS: "--workers 3 --threads 2 --worker-class gthread --timeout 240"
       EXPOSE_PROMETHEUS_METRICS: "False"
+      X_FORWARDED_PROTO_HEADER_SET: "True"
+      USE_X_FORWARDED_HOST: "True"
     volumes:
       - static:/home/wger/static
       - media:/home/wger/media

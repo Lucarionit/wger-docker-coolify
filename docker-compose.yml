@@ -78,7 +78,7 @@ services:
       DJANGO_COLLECTSTATIC_ON_STARTUP: "True"
       FROM_EMAIL: "wger Workout Manager <wger@example.com>"
       NUMBER_OF_PROXIES: "1"
-      GUNICORN_CMD_ARGS: "--workers 3 --threads 2 --worker-class gthread --timeout 240"
+      GUNICORN_CMD_ARGS: "--workers 3 --threads 2 --worker-class gthread --timeout 240 --forwarded-allow-ips=*"
       EXPOSE_PROMETHEUS_METRICS: "False"
       X_FORWARDED_PROTO_HEADER_SET: "True"
       USE_X_FORWARDED_HOST: "True"

@@ -13,12 +13,12 @@ services:
         condition: service_healthy
     command: >
       sh -c "
-      mkdir -p /home/wger/media/.jwt-keys &&
+      mkdir -p /home/wger/media/.jwt-keys;
       if [ ! -s /home/wger/media/.jwt-keys/jwt.env ]; then
-        echo 'Generating JWT keys (first run)...' &&
-        python manage.py generate-jwt-keys > /home/wger/media/.jwt-keys/jwt.env;
-      fi &&
-      set -a && . /home/wger/media/.jwt-keys/jwt.env && set +a &&
+        echo 'Generating JWT keys (first run)...';
+        python manage.py generate-jwt-keys > /home/wger/media/.jwt-keys/jwt.env.tmp 2>/home/wger/media/.jwt-keys/jwt.err && mv /home/wger/media/.jwt-keys/jwt.env.tmp /home/wger/media/.jwt-keys/jwt.env || echo 'JWT key generation failed, continuing without it - see jwt.err';
+      fi;
+      [ -s /home/wger/media/.jwt-keys/jwt.env ] && { set -a; . /home/wger/media/.jwt-keys/jwt.env; set +a; };
       exec /home/wger/entrypoint.sh
       "
     environment:

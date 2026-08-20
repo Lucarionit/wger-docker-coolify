@@ -14,9 +14,9 @@ services:
     command: >
       sh -c "
       mkdir -p /home/wger/media/.jwt-keys &&
-      if [ ! -f /home/wger/media/.jwt-keys/jwt.env ]; then
+      if [ ! -s /home/wger/media/.jwt-keys/jwt.env ]; then
         echo 'Generating JWT keys (first run)...' &&
-        DJANGO_DB_ENGINE=django.db.backends.postgresql DJANGO_DB_DATABASE=wger DJANGO_DB_USER=wger DJANGO_DB_PASSWORD=dummy DJANGO_DB_HOST=localhost DJANGO_DB_PORT=5432 SECRET_KEY=tmp python manage.py generate-jwt-keys > /home/wger/media/.jwt-keys/jwt.env;
+        python manage.py generate-jwt-keys > /home/wger/media/.jwt-keys/jwt.env;
       fi &&
       set -a && . /home/wger/media/.jwt-keys/jwt.env && set +a &&
       exec /home/wger/entrypoint.sh
@@ -77,6 +77,12 @@ services:
       USE_RECAPTCHA: "False"
       DJANGO_CLEAR_STATIC_FIRST: "False"
       DJANGO_COLLECTSTATIC_ON_STARTUP: "True"
+      ENABLE_EMAIL: "True"
+      EMAIL_HOST: smtp.resend.com
+      EMAIL_PORT: "587"
+      EMAIL_HOST_USER: resend
+      EMAIL_HOST_PASSWORD: ${WGER_EMAIL_HOST_PASSWORD}
+      EMAIL_USE_TLS: "True"
       FROM_EMAIL: ${WGER_FROM_EMAIL}
       NUMBER_OF_PROXIES: "1"
       GUNICORN_CMD_ARGS: "--workers 3 --threads 2 --worker-class gthread --timeout 240 --forwarded-allow-ips=*"
